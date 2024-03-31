@@ -1,6 +1,13 @@
+-- Author: mnjm (github.com/mnjm)
+-- Repo: (github.com/mnjm/topline.nvim)
+--
+--
+---------------------------------------------------------------------------------------------------
+------------------------------------TopLine.nvim --------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
 local M = {}
 
--- FIXME:
 local default_config = {
     seperator = ' ',
     seperator_highlight = nil,
@@ -13,12 +20,14 @@ local init_config = function(cfg)
     M.config = vim.tbl_deep_extend("keep", cfg, default_config)
 end
 
+-- healpter func for get_icon
 local safe_require = function(module_name)
     local status_ok, mod = pcall(require, module_name)
     if not status_ok then mod = nil end
     return mod
 end
 
+-- get icon if available
 local get_icon = function(fpath)
     if not M.config.enable_icons then return "" end
     local file_name, file_ext = vim.fn.fnamemodify(fpath, ":t"), vim.fn.fnamemodify(fpath, ":e")
@@ -32,6 +41,7 @@ local get_icon = function(fpath)
     return icon
 end
 
+-- get filename and tags like modified, readonly, help...
 local get_fname_and_tag = function(buf)
     local fpath = vim.api.nvim_buf_get_name(buf)
     local label = ""
@@ -55,10 +65,12 @@ local get_fname_and_tag = function(buf)
     return label
 end
 
+-- [helperfuc] for get_tablabel
 local is_window_relative = function(win_id)
     return vim.api.nvim_win_get_config(win_id).relative ~= ''
 end
 
+-- generate tab title given id
 local get_tablabel = function(tab_id)
     -- Get n_windows and modified flag
     local win_ids = vim.api.nvim_tabpage_list_wins(tab_id)
@@ -92,27 +104,14 @@ local get_tablabel = function(tab_id)
     return tablabel
 end
 
+-- callback for onclick | switchs to clicked tab using tab_id arg
 local topline_onclick_callback = function(data)
     local tab_id = tonumber(data["fargs"][1])
     vim.api.nvim_set_current_tabpage(tab_id)
 end
 
-local setup_onclick_func = function()
-    M.is_tabclick_supported = vim.fn.has('tablinat')
-    if M.is_tabclick_supported then
-        vim.cmd(
-[[function! TopLineClickFunc(tab_id, clicks, button, mod)
-execute 'ToplineOnClickCallUserCmd' a:tab_id
-endfunction]]
-        )
-        vim.api.nvim_create_user_command('ToplineOnClickCallUserCmd', topline_onclick_callback,
-            {nargs = "?", desc = 'Topline,nvim: On click callback user command'})
-    end
-end
-
+-- generate onclick call register if supported
 local get_onclick_call = function(tab_id)
-    local cur_win_id = vim.api.nvim_tabpage_get_win(tab_id)
-    local cur_buf_id  = vim.api.nvim_win_get_buf(cur_win_id)
     local ret = ""
     if M.is_tabclick_supported then
         ret = string.format('%%%d@TopLineClickFunc@', tab_id)
@@ -120,6 +119,7 @@ local get_onclick_call = function(tab_id)
     return ret
 end
 
+-- main generate tabline
 M.generate_tabline = function()
     local tabline = ""
     local tabpage_ids = vim.api.nvim_list_tabpages()
@@ -137,14 +137,36 @@ M.generate_tabline = function()
             M.__sep
         })
     end
+    -- add autofil and close button
     tabline = tabline .. "%#TabLineFill#" .. "%=%#TabLineSel#%999X[X]"
     return tabline
 end
 
+-- setup callbacks for taplick switcher
+local setup_onclick_func = function()
+    M.is_tabclick_supported = vim.fn.has('tablinat')
+    -- I couldn't find anyway to switch to tab using tab_id in vim script, so had to create 2 level
+    -- callback(?) from vim func to user command to lua func to do switching. (whatever)
+    if M.is_tabclick_supported then
+        -- vim func
+        vim.cmd(
+            [[function! TopLineClickFunc(tab_id, clicks, button, mod)
+            execute 'ToplineOnClickCallUserCmd' a:tab_id
+            endfunction]]
+        )
+        -- User command calling lua callback(?)
+        vim.api.nvim_create_user_command('ToplineOnClickCallUserCmd', topline_onclick_callback,
+            {nargs = "?", desc = 'Topline,nvim: On click callback user command'})
+    end
+end
+
+-- Setup highlights to topline seperator is one is presented.
+-- Make selected tab title bold
 local setup_highlights = function()
     -- Make selected tablabel bold
     vim.cmd("hi TabLineSel gui=bold")
 
+    -- Seperator highlight
     local sep_hl = M.config.seperator_highlight
     local sep = "%#TabLine#"
     if sep_hl then
@@ -156,10 +178,15 @@ local setup_highlights = function()
     M.__sep = string.format("%s%s" , sep, M.config.seperator)
 end
 
+-- setup func
 M.setup = function(cfg)
+    -- Exposing plugin
     _G._topline = M
+    -- init config
     init_config(cfg)
+    -- setup highlights
     setup_highlights()
+    -- setup onclick calls
     setup_onclick_func()
     -- set tabline string
     vim.o.tabline = '%!v:lua._topline.generate_tabline()'
