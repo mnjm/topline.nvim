@@ -3,8 +3,7 @@ local M = {}
 -- FIXME:
 local default_config = {
     seperator = ' ',
-    -- seperator_highlight = nil,
-    seperator_highlight = {fg = "#ffffff", bg="#262626", gui=nil},
+    seperator_highlight = nil,
     enable_icons = true,
     tab_label_len = 15,
 }
@@ -33,8 +32,7 @@ local get_icon = function(fpath)
     return icon
 end
 
-local get_tablabel = function(win_id)
-    local buf = vim.api.nvim_win_get_buf(win_id)
+local get_fname_and_tag = function(buf)
     local fpath = vim.api.nvim_buf_get_name(buf)
     local label = ""
     if fpath ~= "" then
@@ -54,40 +52,99 @@ local get_tablabel = function(win_id)
     if vim.bo[buf].buftype == "help" then
         label = label.."[HELP]"
     end
-    -- format
-    local lbl_n = label:len()
-    if lbl_n < M.config.tab_label_len then
-        label = label .. string.rep(" ", M.config.tab_label_len - lbl_n)
-    end
     return label
 end
 
-local get_tabline = function()
+local is_window_relative = function(win_id)
+    return vim.api.nvim_win_get_config(win_id).relative ~= ''
+end
+
+local get_tablabel = function(tab_id)
+    -- Get n_windows and modified flag
+    local win_ids = vim.api.nvim_tabpage_list_wins(tab_id)
+    local buf_modified = false
+    local tablabel = ""
+    -- Remove relative windows (like autocomplete wins) from the count
+    local n_fixed_wins = 0
+    if #win_ids > 1 then
+        for _, id in ipairs(win_ids) do
+            if not is_window_relative(id) then
+                n_fixed_wins = n_fixed_wins + 1
+                local buf_id = vim.api.nvim_win_get_buf(id)
+                buf_modified = buf_modified or vim.bo[buf_id].modified
+            end
+        end
+        local sign = ""
+        if buf_modified then sign = "+" end
+        tablabel = string.format(" [%d%s]", n_fixed_wins, sign)
+    end
+
+    -- get current buf name
+    local cur_win_id = vim.api.nvim_tabpage_get_win(tab_id)
+    local cur_buf_id  = vim.api.nvim_win_get_buf(cur_win_id)
+    tablabel = tablabel .. get_fname_and_tag(cur_buf_id)
+
+    -- format
+    local lbl_n = tablabel:len()
+    if lbl_n < M.config.tab_label_len then
+        tablabel = tablabel .. string.rep(" ", M.config.tab_label_len - lbl_n)
+    end
+    return tablabel
+end
+
+local topline_onclick_callback = function(data)
+    local tab_id = tonumber(data["fargs"][1])
+    vim.api.nvim_set_current_tabpage(tab_id)
+end
+
+local setup_onclick_func = function()
+    M.is_tabclick_supported = vim.fn.has('tablinat')
+    if M.is_tabclick_supported then
+        vim.cmd(
+[[function! TopLineClickFunc(tab_id, clicks, button, mod)
+execute 'ToplineOnClickCallUserCmd' a:tab_id
+endfunction]]
+        )
+        vim.api.nvim_create_user_command('ToplineOnClickCallUserCmd', topline_onclick_callback,
+            {nargs = "?", desc = 'Topline,nvim: On click callback user command'})
+    end
+end
+
+local get_onclick_call = function(tab_id)
+    local cur_win_id = vim.api.nvim_tabpage_get_win(tab_id)
+    local cur_buf_id  = vim.api.nvim_win_get_buf(cur_win_id)
+    local ret = ""
+    if M.is_tabclick_supported then
+        ret = string.format('%%%d@TopLineClickFunc@', tab_id)
+    end
+    return ret
+end
+
+M.generate_tabline = function()
     local tabline = ""
-    local win_ids = vim.api.nvim_list_wins()
-    local cur_win_id = vim.api.nvim_get_current_win()
+    local tabpage_ids = vim.api.nvim_list_tabpages()
+    local cur_tabpage = vim.api.nvim_get_current_tabpage()
     local label, hl_grp = "", ""
     local onclick = ""
-    for i, id in ipairs(win_ids) do
-        -- Skip relative windows
-        if vim.api.nvim_win_get_config(id).relative == "" then
-            label = get_tablabel(id)
-            if id == cur_win_id then hl_grp = "%#TabLineSel#" else hl_grp = "%#TabLine#" end
-            onclick = "%"..i.."T"
-            tabline = tabline .. table.concat( {
-                hl_grp,
-                -- onclick,
-                label,
-                M.__sep
-            })
-            -- tabline = string.format("%s | %s", tabline, get_tablabel(id))
-        end
+    for _, tid in ipairs(tabpage_ids) do
+        label = get_tablabel(tid)
+        if tid == cur_tabpage then hl_grp = "%#TabLineSel#" else hl_grp = "%#TabLine#" end
+        onclick = get_onclick_call(tid)
+        tabline = tabline .. table.concat( {
+            hl_grp,
+            onclick,
+            label,
+            M.__sep
+        })
     end
-    tabline = tabline .. "%#TabLineFill#"
+    tabline = tabline .. "%#TabLineFill#" .. "%=%#TabLineSel#%999X[X]"
     return tabline
 end
 
 local setup_highlights = function()
+    -- Make selected tablabel bold
+    vim.cmd("hi TabLineSel gui=bold")
+
     local sep_hl = M.config.seperator_highlight
     local sep = "%#TabLine#"
     if sep_hl then
@@ -100,12 +157,12 @@ local setup_highlights = function()
 end
 
 M.setup = function(cfg)
+    _G._topline = M
     init_config(cfg)
     setup_highlights()
-    vim.g.__tabline_fun = get_tabline
-    vim.o.tabline = "%!v:lua.vim.g.__tabline_fun()"
+    setup_onclick_func()
+    -- set tabline string
+    vim.o.tabline = '%!v:lua._topline.generate_tabline()'
 end
 
--- FIXME: Remove test codes
-M.setup()
 return M
