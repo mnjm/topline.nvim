@@ -1,7 +1,10 @@
 # topline.nvim
 
 **Simple and minimal tabline as a replacement to inbuilt one with icon and mouse support**
+
 Mouse support is only when underlying terminal emulator and neovim supports it
+
+- Checkout [bottomline.nvim](https://github.com/mnjm/bottomline.nvim) for statusline plugin
 
 ## Screenshots
 
@@ -19,11 +22,13 @@ Optional dependency for icon support - [nvim-web-devicons](https://github.com/nv
 ### Optional
 
 You can force nvim to show tabline always by 
+
 **In lua**
 ```lua
 vim.o.showtabline = 2
 ```
 (or)
+
 **In vim**
 ```vim
 set showtabline=2
