@@ -37,17 +37,22 @@ set showtabline=2
 ### Default configuration
 
 ```lua
-default_config = {
-    seperator = ' ',
-    seperator_highlight = nil,
-    enable_icons = true,
-    tab_label_len = 15,
-}
+seperator = { pre = '', post = '' },
+enable_icons = true,
+default_title_len = 15,
 ```
 You can pass sub-table with custom configurations to setup call, for ex
 
 ```lua
 require('bottomline.nvim').setup({
-    seperator_highlight = {fg = "#ffffff", bg="#262626", gui=nil},
+  seperator = { pre = '', post = '' },
+})
+```
+or
+
+```lua
+require('bottomline.nvim').setup({
+  seperator = { pre = '', post = '' },
+  enable_icons = false,
 })
 ```

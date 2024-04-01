@@ -9,10 +9,9 @@
 local M = {}
 
 local default_config = {
-    seperator = ' ',
-    seperator_highlight = nil,
+    seperator = { pre = '', post = '' },
     enable_icons = true,
-    tab_label_len = 15,
+    default_title_len = 15,
 }
 
 local init_config = function(cfg)
@@ -98,8 +97,8 @@ local get_tablabel = function(tab_id)
 
     -- format
     local lbl_n = tablabel:len()
-    if lbl_n < M.config.tab_label_len then
-        tablabel = tablabel .. string.rep(" ", M.config.tab_label_len - lbl_n)
+    if lbl_n < M.config.default_title_len then
+        tablabel = tablabel .. string.rep(" ", M.config.default_title_len - lbl_n)
     end
     return tablabel
 end
@@ -124,19 +123,27 @@ M.generate_tabline = function()
     local tabline = ""
     local tabpage_ids = vim.api.nvim_list_tabpages()
     local cur_tabpage = vim.api.nvim_get_current_tabpage()
-    local label, hl_grp = "", ""
-    local onclick = ""
+    local label, hl_grp, onclick, sep = "", "", "", nil
     for _, tid in ipairs(tabpage_ids) do
         label = get_tablabel(tid)
-        if tid == cur_tabpage then hl_grp = "%#TabLineSel#" else hl_grp = "%#TabLine#" end
+        if tid == cur_tabpage then
+            hl_grp = "%#TabLineSel#"
+            sep = M.prep_seperators.sel
+        else
+            hl_grp = "%#TabLine#"
+            sep = M.prep_seperators.norm
+        end
         onclick = get_onclick_call(tid)
         tabline = tabline .. table.concat( {
+            sep.pre,
             hl_grp,
             onclick,
             label,
-            M.__sep
+            sep.post,
+            "%#TabLineFill# ",
         })
     end
+
     -- add autofil and close button
     tabline = tabline .. "%#TabLineFill#" .. "%=%#TabLineSel#%999X[X]"
     return tabline
@@ -160,22 +167,33 @@ local setup_onclick_func = function()
     end
 end
 
--- Setup highlights to topline seperator is one is presented.
--- Make selected tab title bold
-local setup_highlights = function()
+-- Setup highlight groups and seperators
+local init_topline = function()
     -- Make selected tablabel bold
     vim.cmd("hi TabLineSel gui=bold")
 
-    -- Seperator highlight
-    local sep_hl = M.config.seperator_highlight
-    local sep = "%#TabLine#"
-    if sep_hl then
-        local m = sep_hl.gui
-        if m then m = "gui="..m else m = "" end
-        vim.cmd(string.format("hi TabLineSep guibg=%s guifg=%s %s", sep_hl.bg, sep_hl.fg, m))
-        sep = "%#TabLineSep#"
-    end
-    M.__sep = string.format("%s%s" , sep, M.config.seperator)
+    -- Create seperator highlights
+    local data = vim.api.nvim_get_hl(0, { name = 'TabLine' })
+    -- Use background as foreground for seperators
+    local norm_fg = data.bg
+    data = vim.api.nvim_get_hl(0, { name = 'TabLineSel' })
+    local sel_fg = data.bg
+    -- Use fill hl background
+    data = vim.api.nvim_get_hl(0, { name = 'TabLineFill' })
+    local bg = data.bg
+    vim.api.nvim_set_hl(0, "TabLineSelInvert", { fg = sel_fg, bg = bg })
+    vim.api.nvim_set_hl(0, "TabLineInvert", { fg = norm_fg, bg = bg })
+    -- Prepare seperators
+    M.prep_seperators = {
+        norm = {
+            pre = "%#TabLineInvert#" .. M.config.seperator.pre,
+            post = "%#TabLineInvert#" .. M.config.seperator.post,
+        },
+        sel = {
+            pre = "%#TabLineSelInvert#" .. M.config.seperator.pre,
+            post = "%#TabLineSelInvert#" .. M.config.seperator.post,
+        },
+    }
 end
 
 -- setup func
@@ -185,7 +203,7 @@ M.setup = function(cfg)
     -- init config
     init_config(cfg)
     -- setup highlights
-    setup_highlights()
+    init_topline()
     -- setup onclick calls
     setup_onclick_func()
     -- set tabline string
