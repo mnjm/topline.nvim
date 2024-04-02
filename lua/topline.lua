@@ -1,25 +1,37 @@
--- Author: mnjm (github.com/mnjm)
--- Repo: (github.com/mnjm/topline.nvim)
---
---
 ---------------------------------------------------------------------------------------------------
 ------------------------------------TopLine.nvim --------------------------------------------------
 ---------------------------------------------------------------------------------------------------
+-- Author: mnjm (github.com/mnjm)
+-- Repo: (github.com/mnjm/topline.nvim)
 
 local M = {}
 
 local default_config = {
     seperator = { pre = '', post = '' },
     enable_icons = true,
-    default_title_len = 15,
+    title_len = 15,
 }
 
-local init_config = function(cfg)
-    cfg = cfg or {}
-    M.config = vim.tbl_deep_extend("keep", cfg, default_config)
+local validate_config = function(cfg)
+    vim.validate({
+        seperator = { cfg.seperator, 'table' },
+        enable_icons = { cfg.enable_icons, 'boolean' },
+        title_len = { cfg.title_len, 'number' },
+    })
+    vim.validate({
+        pre = { cfg.seperator.pre, 'string' },
+        post = { cfg.seperator.post, 'string' },
+    })
 end
 
--- healpter func for get_icon
+local init_config = function(cfg)
+    vim.validate({ config = {cfg, 'table'} })
+    cfg = cfg or {}
+    local config = vim.tbl_deep_extend("keep", cfg, default_config)
+    validate_config(config)
+    return config
+end
+
 local safe_require = function(module_name)
     local status_ok, mod = pcall(require, module_name)
     if not status_ok then mod = nil end
@@ -97,8 +109,8 @@ local get_tablabel = function(tab_id)
 
     -- format
     local lbl_n = tablabel:len()
-    if lbl_n < M.config.default_title_len then
-        tablabel = tablabel .. string.rep(" ", M.config.default_title_len - lbl_n)
+    if lbl_n < M.config.title_len then
+        tablabel = tablabel .. string.rep(" ", M.config.title_len - lbl_n)
     end
     return tablabel
 end
@@ -152,8 +164,8 @@ end
 -- setup callbacks for taplick switcher
 local setup_onclick_func = function()
     M.is_tabclick_supported = vim.fn.has('tablinat')
-    -- I couldn't find anyway to switch to tab using tab_id in vim script, so had to create 2 level
-    -- callback(?) from vim func to user command to lua func to do switching. (whatever)
+    -- I couldn't find anyway to switch to tab using tab_id in vim script, so had to create a user
+    -- command and call that with vim script.
     if M.is_tabclick_supported then
         -- vim func
         vim.cmd(
@@ -201,7 +213,7 @@ M.setup = function(cfg)
     -- Exposing plugin
     _G._topline = M
     -- init config
-    init_config(cfg)
+    M.config = init_config(cfg)
     -- setup highlights
     init_topline()
     -- setup onclick calls

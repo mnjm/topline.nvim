@@ -8,8 +8,8 @@ Mouse support is only when underlying terminal emulator and neovim supports it
 
 ## Screenshots
 
-![1.png](./demo-imgs/1.png)
-![2.png](./demo-imgs/2.png)
+![1.png](https://github.com/mnjm/github-media-repo/blob/6a351736a158012ff40b008895c2a308e5aa4bdb/topline.nvim/1.png)
+![2.png](https://github.com/mnjm/github-media-repo/blob/6a351736a158012ff40b008895c2a308e5aa4bdb/topline.nvim/2.png)
 
 ## Installation
 
@@ -17,6 +17,7 @@ Mouse support is only when underlying terminal emulator and neovim supports it
 mnjm/topline.nvim
 ```
 Install with your favorite plugin manager
+
 Optional dependency for icon support - [nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons)
 
 ### Optional
@@ -46,13 +47,7 @@ You can pass sub-table with custom configurations to setup call, for ex
 ```lua
 require('bottomline.nvim').setup({
   seperator = { pre = '', post = '' },
-})
-```
-or
-
-```lua
-require('bottomline.nvim').setup({
-  seperator = { pre = '', post = '' },
+  -- seperator = { pre = '', post = '' },
   enable_icons = false,
 })
 ```
