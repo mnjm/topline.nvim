@@ -99,7 +99,7 @@ local get_tablabel = function(tab_id)
                 buf_modified = buf_modified or vim.bo[buf_id].modified
             end
         end
-        if #n_fixed_wins > 1 then
+        if n_fixed_wins > 1 then
             tablabel = string.format(" [%d%s]", n_fixed_wins, buf_modified and "+" or "")
         end
     end
