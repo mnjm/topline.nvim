@@ -6,8 +6,9 @@ Mouse support is only when underlying terminal emulator and neovim supports it
 
 - Checkout [bottomline.nvim](https://github.com/mnjm/bottomline.nvim) for statusline plugin
 
-## Screenshots
-
+### Demo
+![Demo Gif](https://github.com/mnjm/github-media-repo/blob/a1918ab62ca1f8ef95bb2ada9bc4ce44c5152200/topline.nvim/demo.gif)
+### Screenshots
 ![1.png](https://github.com/mnjm/github-media-repo/blob/6a351736a158012ff40b008895c2a308e5aa4bdb/topline.nvim/1.png)
 ![2.png](https://github.com/mnjm/github-media-repo/blob/6a351736a158012ff40b008895c2a308e5aa4bdb/topline.nvim/2.png)
 
