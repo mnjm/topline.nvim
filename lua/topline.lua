@@ -12,6 +12,7 @@ local default_config = {
     title_len = 15,
 }
 
+-- helper func for init
 local validate_config = function(cfg)
     vim.validate({
         seperator = { cfg.seperator, 'table' },
@@ -32,6 +33,7 @@ local init_config = function(cfg)
     return config
 end
 
+-- helper func for get_icon
 local safe_require = function(module_name)
     local status_ok, mod = pcall(require, module_name)
     if not status_ok then mod = nil end
@@ -76,7 +78,7 @@ local get_fname_and_tag = function(buf)
     return label
 end
 
--- [helperfuc] for get_tablabel
+-- helper func for get_tablabel
 local is_window_relative = function(win_id)
     return vim.api.nvim_win_get_config(win_id).relative ~= ''
 end
@@ -97,9 +99,9 @@ local get_tablabel = function(tab_id)
                 buf_modified = buf_modified or vim.bo[buf_id].modified
             end
         end
-        local sign = ""
-        if buf_modified then sign = "+" end
-        tablabel = string.format(" [%d%s]", n_fixed_wins, sign)
+        if #n_fixed_wins > 1 then
+            tablabel = string.format(" [%d%s]", n_fixed_wins, buf_modified and "+" or "")
+        end
     end
 
     -- get current buf name
