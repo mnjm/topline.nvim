@@ -25,24 +25,31 @@ end
 -- @return filename with tags
 local get_fname_and_tag = function(buf)
     local fpath = vim.api.nvim_buf_get_name(buf)
-    local label = " [No Name] "
+    local label = "[No Name]"
     if fpath ~= "" then
         local icon = get_icon(fpath)
-        label = string.format(" %s %s ", icon, vim.fn.fnamemodify(fpath, ':t'))
+        local fname = vim.fn.fnamemodify(fpath, ':t')
+        -- format
+        local lbl_n = fname:len()
+        if lbl_n > M.config.max_fname_len then
+            fname = '...' .. string.sub(fname, lbl_n - M.config.max_fname_len + 4)
+        end
+        label = string.format(" %s %s ", icon, fname)
     end
     -- Tags
     if vim.bo[buf].buftype == "quickfix" then
-        label = label.."[QFXLST]"
+        label = label.."[Q]"
     end
     if vim.bo[buf].modified then
         label = label.."[+]"
     end
     if vim.bo[buf].readonly then
-        label = label.."[RO]"
+        label = label.."[R]"
     end
     if vim.bo[buf].buftype == "help" then
-        label = label.."[HELP]"
+        label = label.."[H]"
     end
+    --
     return label
 end
 
@@ -72,11 +79,6 @@ local get_tablabel = function(tab_id)
     local cur_buf_id  = vim.api.nvim_win_get_buf(cur_win_id)
     tablabel = tablabel .. get_fname_and_tag(cur_buf_id)
 
-    -- format
-    local lbl_n = tablabel:len()
-    if lbl_n < M.config.title_len then
-        tablabel = tablabel .. string.rep(" ", M.config.title_len - lbl_n)
-    end
     return tablabel
 end
 
@@ -98,35 +100,50 @@ local get_onclick_call = function(tab_id)
     return ret
 end
 
+-- adds highlight, onclick call, seperators to given label
+-- @param label tab label
+-- @param tab_id tab id of the tab label used for onclick call
+-- @param is_cur_tab true if tab label is the focused one
+-- @return str | with highlights, onclick and seperators attached
+local add_hl_onclickcall_sep = function(label, tab_id, is_cur_tab)
+    local hl, sep = nil, nil
+    local oncall = get_onclick_call(tab_id)
+    if is_cur_tab then
+        hl = "%#TopLineSel#"
+        sep = M.prep_seperators.sel
+    else
+        hl = "%#TopLine#"
+        sep = M.prep_seperators.norm
+    end
+    return table.concat({ sep.pre, hl, oncall, label, sep.post })
+end
+
 -- main generate tabline
 -- @return tabline string
 M.generate_tabline = function()
-    local tabline = ""
-    local tabpage_ids = vim.api.nvim_list_tabpages()
-    local cur_tabpage = vim.api.nvim_get_current_tabpage()
-    local label, hl_grp, onclick, sep = "", "", "", nil
-    for _, tid in ipairs(tabpage_ids) do
-        label = get_tablabel(tid)
-        if tid == cur_tabpage then
-            hl_grp = "%#TopLineSel#"
-            sep = M.prep_seperators.sel
-        else
-            hl_grp = "%#TopLine#"
-            sep = M.prep_seperators.norm
-        end
-        onclick = get_onclick_call(tid)
-        tabline = tabline .. table.concat( {
-            sep.pre,
-            hl_grp,
-            onclick,
-            label,
-            sep.post,
-            "%#TopLineFill# ",
-        })
+    local tabline = ''
+    local tab_id_l = vim.api.nvim_list_tabpages() -- get all tab handlesj
+    local c_tab = vim.api.nvim_get_current_tabpage() -- get current tab handle
+    local width_filled = 0 -- tracks tabline length
+    local avl_scrn_w = vim.o.columns - utils.str_width(M.config.close_icon) -- available screen width
+    local cur_tab_reached = false -- this flag is used to check if cur tab is visible in tabline
+    -- seperator offset : pre + post + [space]
+    local sep_offset = utils.str_width(M.config.seperator.pre) + utils.str_width(M.config.seperator.post) + 1
+    for _, tab_id in ipairs(tab_id_l) do
+        -- get table label
+        local label = get_tablabel(tab_id)
+        -- check if table is current
+        local is_c_tb = tab_id == c_tab
+        local lab_len = utils.str_width(label)
+        width_filled = width_filled + lab_len  + sep_offset
+        tabline = string.format("%s%s", tabline, add_hl_onclickcall_sep(label, tab_id, is_c_tb))
+        -- if current tab is reached and tabline approached available screen width then break
+        if cur_tab_reached and width_filled > avl_scrn_w then break end
+        tabline = tabline .. " " -- add space seperator (but not to the end one)
+        cur_tab_reached = cur_tab_reached or is_c_tb -- update cur_tab_reached
     end
-
-    -- add autofil and close button
-    tabline = tabline .. "%#TopLineFill#" .. "%=%#TopLineSel#%999X[X]"
+    -- close button
+    tabline = string.format("%s%s%s", tabline, "%=%#TopLineSel#", M.config.close_icon)
     return tabline
 end
 
@@ -196,6 +213,7 @@ M.setup = function(cfg)
     setup_onclick_func()
     -- set tabline string
     vim.o.tabline = '%!v:lua._topline.generate_tabline()'
+    -- vim.o.tabline = '%!v:lua._topline.generate_tabline_v2()'
 end
 
 return M

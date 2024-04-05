@@ -17,6 +17,13 @@ M.get_table_len = function(tbl)
     return count
 end
 
+-- get str width but icons and tab as 1 char
+-- @param str
+-- @return number - no of cells that string can occupy
+M.str_width = function(str)
+    return vim.api.nvim_strwidth(str)
+end
+
 -- create hightlight groups
 -- @param hightlights table
 M.setup_highlights = function(highlights)

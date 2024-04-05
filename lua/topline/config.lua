@@ -12,8 +12,9 @@ local M = {}
 local default_config = {
     seperator = { pre = '', post = '' },
     enable_icons = true,
-    title_len = 15,     -- min tab title len
-    highlights = {      -- highlights
+    max_fname_len = 25,     -- min tab title len
+    close_icon = "[x]",
+    highlights = {          -- highlights
         TopLine         = { link = 'TabLine' },
         TopLineSel      = { link = 'TabLineSel' },
         TopLineFill     = { link = 'TabLineFill' },
@@ -26,7 +27,8 @@ local validate_config = function(cfg)
     vim.validate({
         seperator = { cfg.seperator, 'table' },
         enable_icons = { cfg.enable_icons, 'boolean' },
-        title_len = { cfg.title_len, 'number' },
+        max_fname_len = { cfg.max_fname_len, 'number' },
+        close_icon = {cfg.close_icon, 'string'},
         highlights = { cfg.highlights, 'table' },
     })
     vim.validate({
