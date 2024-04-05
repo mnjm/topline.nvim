@@ -136,10 +136,9 @@ M.generate_tabline = function()
         local is_c_tb = tab_id == c_tab
         local lab_len = utils.str_width(label)
         width_filled = width_filled + lab_len  + sep_offset
-        tabline = string.format("%s%s", tabline, add_hl_onclickcall_sep(label, tab_id, is_c_tb))
         -- if current tab is reached and tabline approached available screen width then break
         if cur_tab_reached and width_filled > avl_scrn_w then break end
-        tabline = tabline .. " " -- add space seperator (but not to the end one)
+        tabline = string.format("%s%s ", tabline, add_hl_onclickcall_sep(label, tab_id, is_c_tb))
         cur_tab_reached = cur_tab_reached or is_c_tb -- update cur_tab_reached
     end
     -- close button
