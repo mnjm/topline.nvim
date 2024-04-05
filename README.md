@@ -41,7 +41,12 @@ set showtabline=2
 ```lua
 seperator = { pre = '', post = '' },
 enable_icons = true,
-default_title_len = 15,
+title_len = 15,     -- min tab title len
+highlights = {      -- highlights
+  TopLine         = { link = 'TabLine' },
+  TopLineSel      = { link = 'TabLineSel' },
+  TopLineFill     = { link = 'TabLineFill' },
+}
 ```
 You can pass sub-table with custom configurations to setup call, for ex
 
@@ -50,5 +55,8 @@ require('bottomline.nvim').setup({
   seperator = { pre = '', post = '' },
   -- seperator = { pre = '', post = '' },
   enable_icons = false,
+  highlights = {
+    TopLineSel = {fg = "#000000", bg = "#5faf5f", bold = true},
+  }
 })
 ```

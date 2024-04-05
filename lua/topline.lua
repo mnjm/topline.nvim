@@ -3,61 +3,29 @@
 ---------------------------------------------------------------------------------------------------
 -- Author: mnjm (github.com/mnjm)
 -- Repo: (github.com/mnjm/topline.nvim)
+-- File - lua/topline.lua
+-- License - Refer github
 
 local M = {}
 
-local default_config = {
-    seperator = { pre = '', post = '' },
-    enable_icons = true,
-    title_len = 15,
-}
+-- import modules
+local config = require('topline.config')
+local utils = require('topline.utils')
 
--- helper func for init
-local validate_config = function(cfg)
-    vim.validate({
-        seperator = { cfg.seperator, 'table' },
-        enable_icons = { cfg.enable_icons, 'boolean' },
-        title_len = { cfg.title_len, 'number' },
-    })
-    vim.validate({
-        pre = { cfg.seperator.pre, 'string' },
-        post = { cfg.seperator.post, 'string' },
-    })
-end
-
-local init_config = function(cfg)
-    vim.validate({ config = {cfg, 'table'} })
-    cfg = cfg or {}
-    local config = vim.tbl_deep_extend("keep", cfg, default_config)
-    validate_config(config)
-    return config
-end
-
--- helper func for get_icon
-local safe_require = function(module_name)
-    local status_ok, mod = pcall(require, module_name)
-    if not status_ok then mod = nil end
-    return mod
-end
-
--- get icon if available
+-- get file icon if available
+-- @param fpath file path
+-- @return icon if found else ""
 local get_icon = function(fpath)
     if not M.config.enable_icons then return "" end
-    local file_name, file_ext = vim.fn.fnamemodify(fpath, ":t"), vim.fn.fnamemodify(fpath, ":e")
-    local dev_icons = safe_require("nvim-web-devicons")
-    local icon = ""
-    if dev_icons then
-        icon = dev_icons.get_icon(file_name, file_ext, { default = true })
-    end
-    local ftype = vim.bo.filetype
-    if ftype == '' then icon = '' end
-    return icon
+    return utils.get_icon(fpath)
 end
 
 -- get filename and tags like modified, readonly, help...
+-- @param buf bufid
+-- @return filename with tags
 local get_fname_and_tag = function(buf)
     local fpath = vim.api.nvim_buf_get_name(buf)
-    local label = ""
+    local label = " [No Name] "
     if fpath ~= "" then
         local icon = get_icon(fpath)
         label = string.format(" %s %s ", icon, vim.fn.fnamemodify(fpath, ':t'))
@@ -78,12 +46,9 @@ local get_fname_and_tag = function(buf)
     return label
 end
 
--- helper func for get_tablabel
-local is_window_relative = function(win_id)
-    return vim.api.nvim_win_get_config(win_id).relative ~= ''
-end
-
--- generate tab title given id
+-- generate tab title given id with win count prepended
+-- @param tab_id tab handle
+-- @return tab title string
 local get_tablabel = function(tab_id)
     -- Get n_windows and modified flag
     local win_ids = vim.api.nvim_tabpage_list_wins(tab_id)
@@ -91,17 +56,15 @@ local get_tablabel = function(tab_id)
     local tablabel = ""
     -- Remove relative windows (like autocomplete wins) from the count
     local n_fixed_wins = 0
-    if #win_ids > 1 then
-        for _, id in ipairs(win_ids) do
-            if not is_window_relative(id) then
-                n_fixed_wins = n_fixed_wins + 1
-                local buf_id = vim.api.nvim_win_get_buf(id)
-                buf_modified = buf_modified or vim.bo[buf_id].modified
-            end
+    for _, id in ipairs(win_ids) do
+        if utils.is_window_fixed(id) then
+            n_fixed_wins = n_fixed_wins + 1
+            local buf_id = vim.api.nvim_win_get_buf(id)
+            buf_modified = buf_modified or vim.bo[buf_id].modified
         end
-        if n_fixed_wins > 1 then
-            tablabel = string.format(" [%d%s]", n_fixed_wins, buf_modified and "+" or "")
-        end
+    end
+    if n_fixed_wins > 1 then
+        tablabel = string.format(" [%d%s]", n_fixed_wins, buf_modified and "+" or "")
     end
 
     -- get current buf name
@@ -118,12 +81,15 @@ local get_tablabel = function(tab_id)
 end
 
 -- callback for onclick | switchs to clicked tab using tab_id arg
+-- @param data from user command - this is assumed to contain tab handle in args[1]
 local topline_onclick_callback = function(data)
     local tab_id = tonumber(data["fargs"][1])
     vim.api.nvim_set_current_tabpage(tab_id)
 end
 
 -- generate onclick call register if supported
+-- @param tab_id tab handle
+-- @return onclick that gets added to tabline
 local get_onclick_call = function(tab_id)
     local ret = ""
     if M.is_tabclick_supported then
@@ -133,6 +99,7 @@ local get_onclick_call = function(tab_id)
 end
 
 -- main generate tabline
+-- @return tabline string
 M.generate_tabline = function()
     local tabline = ""
     local tabpage_ids = vim.api.nvim_list_tabpages()
@@ -141,10 +108,10 @@ M.generate_tabline = function()
     for _, tid in ipairs(tabpage_ids) do
         label = get_tablabel(tid)
         if tid == cur_tabpage then
-            hl_grp = "%#TabLineSel#"
+            hl_grp = "%#TopLineSel#"
             sep = M.prep_seperators.sel
         else
-            hl_grp = "%#TabLine#"
+            hl_grp = "%#TopLine#"
             sep = M.prep_seperators.norm
         end
         onclick = get_onclick_call(tid)
@@ -154,12 +121,12 @@ M.generate_tabline = function()
             onclick,
             label,
             sep.post,
-            "%#TabLineFill# ",
+            "%#TopLineFill# ",
         })
     end
 
     -- add autofil and close button
-    tabline = tabline .. "%#TabLineFill#" .. "%=%#TabLineSel#%999X[X]"
+    tabline = tabline .. "%#TopLineFill#" .. "%=%#TopLineSel#%999X[X]"
     return tabline
 end
 
@@ -181,41 +148,48 @@ local setup_onclick_func = function()
     end
 end
 
--- Setup highlight groups and seperators
+-- init_topline - Setup highlight groups and seperators
 local init_topline = function()
-    -- Make selected tablabel bold
-    vim.cmd("hi TabLineSel gui=bold")
+    -- setup highlights
+    utils.setup_highlights(M.config.highlights)
+
+    -- override TopLineSel - make it bold
+    local data = vim.api.nvim_get_hl(0, { name = 'TopLineSel', link = false })
+    data = vim.deepcopy(data)
+    data['bold'] = true
+    vim.api.nvim_set_hl(0, 'TopLineSel', data)
 
     -- Create seperator highlights
-    local data = vim.api.nvim_get_hl(0, { name = 'TabLine' })
+    data = vim.api.nvim_get_hl(0, { name = 'TopLine', link = false })
     -- Use background as foreground for seperators
     local norm_fg = data.bg
-    data = vim.api.nvim_get_hl(0, { name = 'TabLineSel' })
+    data = vim.api.nvim_get_hl(0, { name = 'TopLineSel', link = false })
     local sel_fg = data.bg
     -- Use fill hl background
-    data = vim.api.nvim_get_hl(0, { name = 'TabLineFill' })
+    data = vim.api.nvim_get_hl(0, { name = 'TopLineFill', link = false })
     local bg = data.bg
-    vim.api.nvim_set_hl(0, "TabLineSelInvert", { fg = sel_fg, bg = bg })
-    vim.api.nvim_set_hl(0, "TabLineInvert", { fg = norm_fg, bg = bg })
+    vim.api.nvim_set_hl(0, "TopLineSelInvert", { fg = sel_fg, bg = bg })
+    vim.api.nvim_set_hl(0, "TopLineInvert", { fg = norm_fg, bg = bg })
     -- Prepare seperators
     M.prep_seperators = {
         norm = {
-            pre = "%#TabLineInvert#" .. M.config.seperator.pre,
-            post = "%#TabLineInvert#" .. M.config.seperator.post,
+            pre = "%#TopLineInvert#" .. M.config.seperator.pre,
+            post = "%#TopLineInvert#" .. M.config.seperator.post,
         },
         sel = {
-            pre = "%#TabLineSelInvert#" .. M.config.seperator.pre,
-            post = "%#TabLineSelInvert#" .. M.config.seperator.post,
+            pre = "%#TopLineSelInvert#" .. M.config.seperator.pre,
+            post = "%#TopLineSelInvert#" .. M.config.seperator.post,
         },
     }
 end
 
 -- setup func
+-- @param cfg custom config table
 M.setup = function(cfg)
     -- Exposing plugin
     _G._topline = M
     -- init config
-    M.config = init_config(cfg)
+    M.config = config.init_config(cfg)
     -- setup highlights
     init_topline()
     -- setup onclick calls
