@@ -41,8 +41,9 @@ end
 -- initialize config
 -- @param cfg custom config from setup call
 M.init_config = function(cfg)
-    vim.validate({ config = {cfg, 'table'} })
     cfg = cfg or {}
+    -- check if passed config is a table
+    vim.validate({ config = {cfg, 'table'} })
     -- extend default_config and keep the changes from custom config (cfg)
     local config = vim.tbl_deep_extend("keep", cfg, default_config)
     validate_config(config)
