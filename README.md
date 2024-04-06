@@ -41,22 +41,23 @@ set showtabline=2
 ```lua
 seperator = { pre = '', post = '' },
 enable_icons = true,
-title_len = 15,     -- min tab title len
-highlights = {      -- highlights
-  TopLine         = { link = 'TabLine' },
-  TopLineSel      = { link = 'TabLineSel' },
-  TopLineFill     = { link = 'TabLineFill' },
+max_fname_len = 25,     -- max file name len
+close_icon = "[x]",
+highlights = {          -- highlights
+  TopLine         = { link = 'TabLine' },               -- tab title
+  TopLineSel      = { link = 'TabLineSel' },            -- tab title [Focused]
+  TopLineFill     = { link = 'TabLineFill' },           -- filler
+  TopLineClose    = { link = 'TabLineSel' },            -- close button
 }
 ```
-You can pass sub-table with custom configurations to setup call, for ex
+You can override default config by passing custom config to setup call, for ex
 
 ```lua
 require('bottomline.nvim').setup({
   seperator = { pre = '', post = '' },
   -- seperator = { pre = '', post = '' },
-  enable_icons = false,
+  close_icon = " 󰅘 ",
   highlights = {
-    TopLineSel = {fg = "#000000", bg = "#5faf5f", bold = true},
-  }
+    TopLineClose = { fg = "#d70000", bg = "#000000" },
 })
 ```

@@ -12,14 +12,14 @@ local M = {}
 local default_config = {
     seperator = { pre = '', post = '' },
     enable_icons = true,
-    max_fname_len = 25,     -- min tab title len
+    max_fname_len = 25,     -- max file name len
     close_icon = "[x]",
     highlights = {          -- highlights
-        TopLine         = { link = 'TabLine' },
-        TopLineSel      = { link = 'TabLineSel' },
-        TopLineFill     = { link = 'TabLineFill' },
-        TopLineClose    = { link = 'TabLineSel' },
-    }
+        TopLine         = { link = 'TabLine' },               -- tab title
+        TopLineSel      = { link = 'TabLineSel' },            -- tab title [Focused]
+        TopLineFill     = { link = 'TabLineFill' },           -- filler
+        TopLineClose    = { link = 'TabLineSel' },            -- close button
+    },
 }
 
 -- config validator
