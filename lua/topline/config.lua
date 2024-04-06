@@ -18,6 +18,7 @@ local default_config = {
         TopLine         = { link = 'TabLine' },
         TopLineSel      = { link = 'TabLineSel' },
         TopLineFill     = { link = 'TabLineFill' },
+        TopLineClose    = { link = 'TabLineSel' },
     }
 }
 

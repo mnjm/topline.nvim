@@ -121,7 +121,7 @@ end
 -- main generate tabline
 -- @return tabline string
 M.generate_tabline = function()
-    local tabline = ''
+    local tabline = {}
     local tab_id_l = vim.api.nvim_list_tabpages() -- get all tab handlesj
     local c_tab = vim.api.nvim_get_current_tabpage() -- get current tab handle
     local width_filled = 0 -- tracks tabline length
@@ -137,13 +137,18 @@ M.generate_tabline = function()
         local lab_len = utils.str_width(label)
         width_filled = width_filled + lab_len  + sep_offset
         -- if current tab is reached and tabline approached available screen width then break
-        if cur_tab_reached and width_filled > avl_scrn_w then break end
-        tabline = string.format("%s%s ", tabline, add_hl_onclickcall_sep(label, tab_id, is_c_tb))
+        if cur_tab_reached and width_filled > avl_scrn_w then
+            local avail_space = avl_scrn_w - width_filled + lab_len
+            label = utils.get_substr_display_cell(label, avail_space)
+            table.insert(tabline, add_hl_onclickcall_sep(label, tab_id, false))
+            break
+        end
+        table.insert(tabline, add_hl_onclickcall_sep(label, tab_id, is_c_tb))
         cur_tab_reached = cur_tab_reached or is_c_tb -- update cur_tab_reached
     end
     -- close button
-    tabline = string.format("%s%s%s", tabline, "%=%#TopLineSel#", M.config.close_icon)
-    return tabline
+    local ret = string.format("%s%s%s", table.concat(tabline, " "), "%=%#TopLineClose#%999X", M.config.close_icon)
+    return ret
 end
 
 -- setup callbacks for taplick switcher
@@ -212,7 +217,6 @@ M.setup = function(cfg)
     setup_onclick_func()
     -- set tabline string
     vim.o.tabline = '%!v:lua._topline.generate_tabline()'
-    -- vim.o.tabline = '%!v:lua._topline.generate_tabline_v2()'
 end
 
 return M

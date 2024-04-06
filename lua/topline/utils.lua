@@ -17,6 +17,15 @@ M.get_table_len = function(tbl)
     return count
 end
 
+M.get_substr_display_cell = function(str, len)
+    local ret = ""
+    if len > 0 then
+        local data = vim.api.nvim_eval_statusline(str, { maxwidth = len, use_tabline = true })
+        ret = data.str
+    end
+    return ret
+end
+
 -- get str width but icons and tab as 1 char
 -- @param str
 -- @return number - no of cells that string can occupy
@@ -29,7 +38,7 @@ end
 M.setup_highlights = function(highlights)
     if not highlights then return end
     for name, data in pairs(highlights) do
-        -- in case if hightligh in default_config has link and migrated to user passed configs
+        -- in case if hightlight in default_config has link and migrated to user passed configs
         if data['link'] and M.get_table_len(data) > 1 then data['link'] = nil end
         vim.api.nvim_set_hl(0, name, data)
     end
