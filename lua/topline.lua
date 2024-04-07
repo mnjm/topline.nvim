@@ -115,7 +115,7 @@ local add_hl_onclickcall_sep = function(label, tab_id, is_cur_tab)
         hl = "%#TopLine#"
         sep = M.prep_seperators.norm
     end
-    return table.concat({ sep.pre, hl, oncall, label, sep.post })
+    return table.concat({ sep.pre, hl, oncall, label, "%X", sep.post })
 end
 
 -- main generate tabline
@@ -211,6 +211,8 @@ M.setup = function(cfg)
     _G._topline = M
     -- init config
     M.config = config.init_config(cfg)
+
+    if not M.config.enable then return end
     -- setup highlights
     init_topline()
     -- setup onclick calls
