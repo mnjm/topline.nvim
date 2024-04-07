@@ -1,27 +1,73 @@
-# topline.nvim
+# [TopLine.nvim](https://github.com/mnjm/topline.nvim)
 
-**Simple and minimal tabline as a replacement to inbuilt one with icon and mouse support**
-
-Mouse support is only when underlying terminal emulator and neovim supports it
-
-- Checkout [bottomline.nvim](https://github.com/mnjm/bottomline.nvim) for statusline plugin
+**A tabline plugin as a replacement to inbuilt one with icon and mouse support**
 
 ![Demo Gif](https://github.com/mnjm/github-media-repo/blob/15e5a965e38797ae56aa2006ee32118c7f881217/topline.nvim/demo.gif)
 ![Demo SS](https://github.com/mnjm/github-media-repo/blob/15e5a965e38797ae56aa2006ee32118c7f881217/topline.nvim/ss1.png)
 ![Demo SS](https://github.com/mnjm/github-media-repo/blob/15e5a965e38797ae56aa2006ee32118c7f881217/topline.nvim/ss2.png)
 
+**My other plugins**
+- [BottomLine.nvim](https://github.com/mnjm/bottomline.nvim) - Statusline plugin
+- [WinLine.nvim](https://github.com/mnjm/winline.nvim) - WinLine plugin
+
 ## Installation
 
+### vim-plug
+```vim
+Plug 'mnjm/topline.nvim'
+" Optional dependency for icons
+Plug 'nvim-tree/nvim-web-devicons'
 ```
-mnjm/topline.nvim
+### packer.nvim
+```lua
+use {
+    'mnjm/topline.nvim',
+    -- optional dependency for icons 
+    requires = { 'nvim-tree/nvim-web-devicons', opt = true }
+}
 ```
-Install with your favorite plugin manager
-
-Optional dependency for icon support - [nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons)
-
-### Optional
-
-You can force nvim to show tabline always by 
+### lazy.nvim
+```lua
+{
+    'mnjm/topline.nvim'
+    dependencies = { 'nvim-tree/nvim-web-devicons' }
+}
+```
+## Setup
+To start topline, add below line in your neovim config
+```lua
+require("topline").setup()
+```
+### Customization
+You can pass custom config to override default configs to setup call, for ex
+```lua
+require('topline').setup({
+  enable = true,
+  seperator = { pre = '', post = '' },
+  -- seperator = { pre = '', post = '' },
+  close_icon = " 󰅘 ",
+  highlights = {
+    TopLineClose = { fg = "#d70000", bg = "#000000" },
+  },
+})
+```
+Available configuration options
+```lua
+require('topline').setup({
+  enable = true,
+  seperator = { pre = '', post = '' },
+  enable_icons = true,
+  max_fname_len = 25,     -- max file name len
+  close_icon = "[x]",
+  highlights = {          -- highlights
+    TopLine         = { link = 'TabLine' },               -- tab title
+    TopLineSel      = { link = 'TabLineSel' },            -- tab title [Focused]
+    TopLineFill     = { link = 'TabLineFill' },           -- filler
+    TopLineClose    = { link = 'TabLineSel' },            -- close button
+  },
+})
+```
+You can force nvim to show tabline always by
 
 **In lua**
 ```lua
@@ -32,30 +78,4 @@ vim.o.showtabline = 2
 **In vim**
 ```vim
 set showtabline=2
-```
-
-### Default configuration
-
-```lua
-seperator = { pre = '', post = '' },
-enable_icons = true,
-max_fname_len = 25,     -- max file name len
-close_icon = "[x]",
-highlights = {          -- highlights
-  TopLine         = { link = 'TabLine' },               -- tab title
-  TopLineSel      = { link = 'TabLineSel' },            -- tab title [Focused]
-  TopLineFill     = { link = 'TabLineFill' },           -- filler
-  TopLineClose    = { link = 'TabLineSel' },            -- close button
-}
-```
-You can override default config by passing custom config to setup call, for ex
-
-```lua
-require('bottomline.nvim').setup({
-  seperator = { pre = '', post = '' },
-  -- seperator = { pre = '', post = '' },
-  close_icon = " 󰅘 ",
-  highlights = {
-    TopLineClose = { fg = "#d70000", bg = "#000000" },
-})
 ```
