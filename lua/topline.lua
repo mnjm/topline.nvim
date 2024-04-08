@@ -43,6 +43,9 @@ local get_fname_and_tag = function(buf)
     if vim.bo[buf].modified then
         label = label.."[+]"
     end
+    if vim.bo[buf].modifiable == false then
+        label = label .. "[-]"
+    end
     if vim.bo[buf].readonly then
         label = label.."[R]"
     end
