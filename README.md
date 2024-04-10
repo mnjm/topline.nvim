@@ -2,9 +2,10 @@
 
 **A tabline plugin as a replacement to inbuilt one with icon and mouse support**
 
-![Demo Gi](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/demo.gif)
-![Demo SS](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/ss1.png)
-![Demo SS](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/ss2.png)
+![Demo Gi](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/demo1.gif?raw=true)
+![Demo Gi](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/demo.gif?raw=true)
+![Demo SS](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/ss1.png?raw=true)
+![Demo SS](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/ss2.png?raw=true)
 
 **My other plugins**
 - [BottomLine.nvim](https://github.com/mnjm/bottomline.nvim) - Statusline plugin
