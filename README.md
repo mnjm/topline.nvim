@@ -2,9 +2,9 @@
 
 **A tabline plugin as a replacement to inbuilt one with icon and mouse support**
 
-![Demo Gif](https://github.com/mnjm/github-media-repo/blob/15e5a965e38797ae56aa2006ee32118c7f881217/topline.nvim/demo.gif)
-![Demo SS](https://github.com/mnjm/github-media-repo/blob/15e5a965e38797ae56aa2006ee32118c7f881217/topline.nvim/ss1.png)
-![Demo SS](https://github.com/mnjm/github-media-repo/blob/15e5a965e38797ae56aa2006ee32118c7f881217/topline.nvim/ss2.png)
+![Demo Gi](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/demo.gif)
+![Demo SS](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/ss1.png)
+![Demo SS](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/ss2.png)
 
 **My other plugins**
 - [BottomLine.nvim](https://github.com/mnjm/bottomline.nvim) - Statusline plugin
@@ -43,8 +43,9 @@ You can pass custom config to override default configs to setup call, for ex
 ```lua
 require('topline').setup({
   enable = true,
-  seperator = { pre = '', post = '' },
+  -- seperator = { pre = '', post = '' },
   -- seperator = { pre = '', post = '' },
+  seperator = { pre = '',  post = '' },
   close_icon = " 󰅘 ",
   highlights = {
     TopLineClose = { fg = "#d70000", bg = "#000000" },
