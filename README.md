@@ -2,14 +2,13 @@
 
 **A tabline plugin as a replacement to inbuilt one with icon and mouse support**
 
-![Demo Gi](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/demo1.gif?raw=true)
 ![Demo Gi](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/demo.gif?raw=true)
-![Demo SS](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/ss1.png?raw=true)
-![Demo SS](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/ss2.png?raw=true)
 
 **My other plugins**
 - [BottomLine.nvim](https://github.com/mnjm/bottomline.nvim) - Statusline plugin
 - [WinLine.nvim](https://github.com/mnjm/winline.nvim) - WinLine plugin
+
+***
 
 ## Installation
 
@@ -34,6 +33,9 @@ use {
     dependencies = { 'nvim-tree/nvim-web-devicons' }
 }
 ```
+
+***
+
 ## Setup
 To start topline, add below line in your neovim config
 ```lua
@@ -53,7 +55,7 @@ require('topline').setup({
   },
 })
 ```
-Available configuration options
+Available default configuration options
 ```lua
 require('topline').setup({
   enable = true,
@@ -75,9 +77,13 @@ You can force nvim to show tabline always by
 ```lua
 vim.o.showtabline = 2
 ```
-(or)
-
 **In vim**
 ```vim
 set showtabline=2
 ```
+***
+![Demo Gi](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/demo1.gif?raw=true)
+![Demo SS](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/ss1.png?raw=true)
+![Demo SS](https://github.com/mnjm/github-media-repo/blob/main/topline.nvim/ss2.png?raw=true)
+***
+License MIT
