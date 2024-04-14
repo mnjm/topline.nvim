@@ -48,13 +48,13 @@ M.init_config = function(user_cfg)
     vim.validate({ config = {user_cfg, 'table'} })
     -- extend default_config and keep the changes from custom config (cfg)
     local config = vim.tbl_deep_extend("keep", user_cfg, default_config)
-    validate_config(config)
     -- clear out the default highlights if any that seeped through when (keep)expanded
     if user_cfg.highlights then
         for name, data in pairs(user_cfg.highlights) do
             config.highlights[name] = data
         end
     end
+    validate_config(config)
     return config
 end
 
