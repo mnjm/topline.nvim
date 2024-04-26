@@ -89,6 +89,7 @@ end
 -- @param data from user command - this is assumed to contain tab handle in args[1]
 local topline_onclick_callback = function(data)
     local tab_id = tonumber(data["fargs"][1])
+---@diagnostic disable-next-line: param-type-mismatch
     vim.api.nvim_set_current_tabpage(tab_id)
 end
 
