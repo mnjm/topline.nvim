@@ -28,13 +28,16 @@ local get_fname_and_tag = function(buf)
     local label = "[No Name]"
     if fpath ~= "" then
         local icon = get_icon(fpath)
-        local fname = vim.fn.fnamemodify(fpath, ':t')
+        local flbl = vim.fn.fnamemodify(fpath, ':t')
         -- format
-        local lbl_n = fname:len()
-        if lbl_n > M.config.max_fname_len then
-            fname = '...' .. string.sub(fname, lbl_n - M.config.max_fname_len + 4)
+        local lbl_n = flbl:len()
+        if lbl_n == 0 then
+            flbl = vim.bo[buf].filetype
         end
-        label = string.format(" %s %s ", icon, fname)
+        if lbl_n > M.config.max_fname_len then
+            flbl = '...' .. string.sub(flbl, lbl_n - M.config.max_fname_len + 4)
+        end
+        label = string.format(" %s %s ", icon, flbl)
     end
     -- Tags
     if vim.bo[buf].buftype == "quickfix" then
